@@ -126,13 +126,13 @@ def process_text(a):
 
 ########################################################
 
-data1 = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/second/mh.csv", index_col = 0)
-data2 = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/second/mh_rise.csv", index_col = 0)
-data3 = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/second/mh_neg.csv", index_col = 0)
-data4 = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/second/mh_neg2.csv", index_col = 0)
-data5 = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/second/mh_neg3.csv", index_col = 0)
-data6 = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/second/mh_neg4.csv", index_col = 0)
-data7 = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/second/mh_neg5.csv", index_col = 0)
+data1 = pd.read_csv("./mh.csv", index_col = 0)
+data2 = pd.read_csv("./mh_rise.csv", index_col = 0)
+data3 = pd.read_csv("./mh_neg.csv", index_col = 0)
+data4 = pd.read_csv("./mh_neg2.csv", index_col = 0)
+data5 = pd.read_csv("./mh_neg3.csv", index_col = 0)
+data6 = pd.read_csv("./mh_neg4.csv", index_col = 0)
+data7 = pd.read_csv("./mh_neg5.csv", index_col = 0)
 # data1['label'] = data1['voted_up'].replace({True: 1, False: 0})
 # data2['label'] = data2['voted_up'].replace({True: 1, False: 0})
 # data1 = data1.dropna(subset=['review'])
@@ -171,18 +171,11 @@ neg_data4 =pd.DataFrame(columns =['review_text', 'label'])
 neg_data4['review_text'] = data6['review']
 neg_data4['label'] = data6['score'].replace({"Not Recommended": 0})
 
-# neg_data5 =pd.DataFrame(columns =['review_text', 'label'])
-# neg_data5['review_text'] = data6['review']
-# neg_data5['label'] = data7['score'].replace({"Not Recommended": 0})
 
 pre_data = pd.concat([neg_data2, pre_data, neg_data1, neg_data3, neg_data4], ignore_index=True)
-
 pre_data['review_text'] = pre_data['review_text'].str.lower()
-
 pre_data['review_text']=pre_data['review_text'].apply(lambda x: lem(str(x)))
-
 pre_data['review_text']=pre_data['review_text'].apply(lambda x: process_text(str(x)))
-
 pre_data['label'].value_counts()
 
 
@@ -205,23 +198,9 @@ pre_data['review_text'] = pre_data['review_text'].astype('str')
 pre_data = pre_data[pre_data['review_text'].map(len)>0]
 
 #단어 빈도 세기
-# import matplotlib.pyplot as plt
-# word_list = pre_data['review_text'].str.split()
-
 negative_text =pre_data[pre_data['label']==0].review_text
 positive_text =pre_data[pre_data['label']==1].review_text
-# 
-# positive_count = Counter(positive_text)
-# negative_count = Counter(negative_text)
 
-# tags1 = positive_count.most_common(50)
-# tags2 = negative_count.most_common(50)
-
-# wc = WordCloud(background_color="white", max_font_size=40)
-# cloud = wc.generate_from_frequencies(dict(tags1))
-# plt.axis('off')
-# plt.imshow(cloud)
-# plt.show()
 
 # Initializing Dictionary
 d = {}
@@ -255,7 +234,7 @@ pre_data['label'].value_counts()
 #train test set 분리
 X_train, X_test, y_train, y_test = train_test_split(pre_data['review_text'], pre_data['label'], test_size=0.3) 
 
-#############LDA
+#############LDA - topic modeling
 
 import gensim.corpora as corpora
 import gensim
@@ -268,7 +247,7 @@ dictionary = corpora.Dictionary(tokens)
 corpus = [dictionary.doc2bow(text) for text in tokens]
 
 
-NUM_TOPICS = 5 # 20개의 토픽, k=20
+NUM_TOPICS = 5 # 5개의 토픽, k=5
 ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = NUM_TOPICS, id2word=dictionary, passes=15)
 topics = ldamodel.print_topics()
 
@@ -283,7 +262,7 @@ tokenizer2 = Tokenizer()
 tokenizer2.fit_on_texts(X_train)
 
 
-#####5회미만 빈도 
+#####10회미만 빈도 
 threshold = 11
 total_cnt = len(tokenizer2.word_index) # 단어의 수
 rare_cnt = 0 # 등장 빈도수가 threshold보다 작은 단어의 개수를 카운트
@@ -335,23 +314,12 @@ max_review_length = 240
 X_train = pad_sequences(list_tokenized_train, maxlen=max_review_length)
 
 y_train.value_counts()
-#데이터 불균형으로 undersampling
-# undersample = RandomUnderSampler(sampling_strategy='majority')
-# X_over, y_over = undersample.fit_resample(X_train, y_train)
-
-# y_train.value_counts()
-# y_over.value_counts()
-# smote = SMOTE(random_state=0)
-# X_train_over, y_train_over = smote.fit_resample(X_train, y_train)   
-
 
 ############ X _Test
 X_test = tokenizer3.texts_to_sequences(X_test)
 X_test = pad_sequences(X_test, maxlen=max_review_length)
 
 words_list = tokenizer3.index_word
-# label_count = pd.DataFrame(y_train_over)
-# label_count.value_counts()
 
 ###LSTM 모델 구축
 embedding_dim = 100
@@ -371,7 +339,6 @@ history = model.fit(X_train, y_train, epochs=15, callbacks=[es, mc], batch_size=
 
 loaded_model = load_model('best_model.h5')
 loaded_model.summary()
-
 
 prediction = loaded_model.predict(X_test)
 y_pred = (prediction > 0.5)
@@ -432,46 +399,6 @@ confusion_matrix(y_test,y_pred)
 print(classification_report(y_test,y_pred))
 
 
-
-###simple RNN
-
-model4 = Sequential()
-model4.add(Embedding(vocab_size, embedding_dim))
-model4.add(SimpleRNN(hidden_units)) # simple RNN을 사용
-model4.add(Dense(1, activation='sigmoid'))
-
-es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
-mc = ModelCheckpoint('best_model.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
-
-model4.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
-history4 = model4.fit(X_train_over, y_train_over, epochs=15, callbacks=[es, mc], batch_size=256, validation_split=0.2)
-
-loaded_model4 = load_model('best_model.h5')
-print("테스트 정확도: %.4f" % (loaded_model4.evaluate(X_test, y_test)[1]))
-
-prediction = loaded_model4.predict(X_test)
-y_pred = (prediction > 0.5)
-print("Accuracy of the RNN model : ", accuracy_score(y_pred, y_test))
-print('F1-score: ', f1_score(y_pred, y_test))
-print('Confusion matrix:')
-confusion_matrix(y_test,y_pred)
-print(classification_report(y_test,y_pred))
-
-###나이브베이즈
-from sklearn.naive_bayes import MultinomialNB # 다항분포 나이브 베이즈 모델
-
-
-mod = MultinomialNB()
-mod.fit(X_train_over, y_train_over)
-
-prediction = mod.predict(X_test)
-y_pred = (prediction > 0.5)
-print("Accuracy of the Naive model : ", accuracy_score(y_pred, y_test))
-print('F1-score: ', f1_score(y_pred, y_test))
-print('Confusion matrix:')
-confusion_matrix(y_test,y_pred)
-print(classification_report(y_test,y_pred))
-
 ############LIME
 import numpy as np
 
@@ -487,8 +414,6 @@ def predict_proba(arr):
         temp=i[0]
         returnable.append(np.array([1-temp,temp])) #I would recommend rounding temp and 1-temp off to 2 places
     return np.array(returnable)
-
-
 
 result_df = pd.DataFrame()
 
@@ -531,7 +456,6 @@ mean_p_df = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/전�
 mean_p_top = mean_p_df[mean_p_df['value']>0.2]
 
 matching1 = [s for s in positive_text if any(xs in s for xs in mean_p_top['word'])]
-
 
 #부정 top 단어가 들어간 리뷰 수
 mean_n_df = pd.read_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/전체리뷰 부정 가중치_합.csv")
@@ -578,11 +502,9 @@ word_corr_df.columns = words2
 
 word_corr_df.to_csv('부정단어network2.csv')
 
-###SHAP 
+###SHAP #####오류 발생으로 오류 해결 중
 pip install shap --upgrade
 import shap
-
-
 
 np_list_seq = tokenizer3.texts_to_sequences(np_list)
 np_list_seq = pad_sequences(np_list_seq, maxlen=max_review_length)
@@ -592,7 +514,6 @@ explainer = shap.DeepExplainer(model, X_train[:100])
 shap_vals = explainer.shap_values(np_list_seq_df[:2].values)
 
 
-
 words = tokenizer3.word_index
 word_lookup = list()
 for i in words.keys():
@@ -600,93 +521,5 @@ for i in words.keys():
 word_lookup = [''] + word_lookup
 shap.summary_plot(shap_vals, feature_names=word_lookup, class_names=tag_encoder.classes_)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### XGboost
-import xgboost as xgb
-from sklearn.feature_extraction.text import CountVectorizer
- 
-cv = CountVectorizer(stop_words = stop_words, min_df=10)
-cv.fit(pre_data['review_text'])
-
-X_train2, X_test2, y_train, y_test = train_test_split(pre_data['review_text'], pre_data['label'], test_size=0.3) 
-
-x_train = cv.transform(X_train2).toarray()
-x_test  = cv.transform(X_test2).toarray()
-
-feature_names = cv.get_feature_names()
-
-dtrain = xgb.DMatrix(x_train, label=y_train, feature_names=feature_names)
-dtest = xgb.DMatrix(x_test, label=y_test, feature_names=feature_names)
-
-
-params = {'max_depth' : 50,
-         'eta' : 0.1, 
-         'objective' : 'binary:logistic'}
-
-xgb_model=xgb.train(params, dtrain, num_boost_round = 30)
-
-prediction = xgb_model.predict(dtest)
-
-y_pred = (prediction > 0.5)
-print("Accuracy of the XGBoost : ", accuracy_score(y_pred, y_test))
-print('F1-score: ', f1_score(y_pred, y_test))
-print('Confusion matrix:')
-confusion_matrix(y_test,y_pred)
-print(classification_report(y_test,y_pred))
-
-
-
-from xgboost import plot_importance
-import matplotlib.pyplot as plt
-
-fig, ax = plt.subplots(figsize=(10, 15))
-plot_importance(xgb_model, ax=ax, max_num_features=30)
-plt.yticks(fontsize=20)
-plt.xticks(fontsize=20)
-plt.title("Feature importance", fontsize=16)
-plt.xlabel("F score", fontsize=16)
-plt.ylabel("Features", fontsize=16)
-plt.show()
-
-
-from xgboost import plot_tree
-from matplotlib.pylab import rcParams
-import graphviz
-
-
-os.environ['PATH'] +=(os.pathsep + 'C:/Program Files (x86)/Graphviz/bin/')
-rcParams['figure.figsize'] = 300,300
-
-plot_tree(xgb_model, fontsize = 10)
-plt.show()
-
-####pdp plot
-pip install --upgrade pip
-pip install pdpbox --upgrade pip
-
-
-from pdpbox import pdp
-
-feature = 'monster'
-features = dtest.feature_names
-pdp_dist = pdp.pdp_isolate(model=xgb_model, dataset=dtest, model_features=features, feature=feature)
-pdp.pdp_plot(pdp_dist, feature)
 
 
