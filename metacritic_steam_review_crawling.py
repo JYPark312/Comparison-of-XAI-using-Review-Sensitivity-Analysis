@@ -38,7 +38,7 @@ date =[]
 review=[]
 
 for a in range(0,4):
-    url ='https://www.metacritic.com/game/playstation-4/grand-theft-auto-v/user-reviews?sort-by=date&num_items=100&page='+str(a)
+    url ='https://www.metacritic.com/game/playstation-4/grand-theft-auto-v/user-reviews?sort-by=date&num_items=100&page='+str(a) #game page
     driver.get(url)
     time.sleep(3)
     html = driver.page_source
@@ -89,9 +89,9 @@ for j in genre:
 link_list_df = pd.DataFrame(link_list)
 link_list_df.drop_duplicates(inplace=True)
 
-link_list_df.to_excel('C:/Users/young/OneDrive/바탕 화면/link_list_df.xlsx')
+link_list_df.to_excel('./link_list_df.xlsx')
 
-url2 = "https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/?snr=1_241_4_action_tab-TopRated"
+url2 = "https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/?snr=1_241_4_action_tab-TopRated" #스팀 리뷰 url
 
 driver.get(url2)
 html = driver.page_source
@@ -107,7 +107,7 @@ file_list = os.listdir(path_dir)
 
 
 for a in file_list:    
-    data = pd.read_excel("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/새 폴더/"+a)[:20]
+    data = pd.read_excel(a)[:20]
     columns = data.columns.values[0]
     number = data[columns].str.split('/').str[4] #id만 따기    
     for k in number:
@@ -188,7 +188,7 @@ for a in file_list:
         steam_review['review'] = steam_review['review'].str.strip()  
         
         #파일로 저장
-        steam_review.to_excel('C:/Users/young/OneDrive/바탕 화면/졸업논문/data/'+str(columns)+title +'.xlsx')
+        steam_review.to_excel(title +'.xlsx')
 
 
 #API를 써서 
@@ -198,10 +198,10 @@ import pandas as pd
 import os
 
 
-path_dir = 'C:/Users/young/OneDrive/바탕 화면/졸업논문/data/새 폴더'
+path_dir = ' ' #불러올 파일들이 있는 위치
 file_list = os.listdir(path_dir)
 
-def get_reviews(appid, params={'json':1}):
+def get_reviews(appid, params={'json':1}): #각 게임별 id 필요
         url = 'https://store.steampowered.com/appreviews/'
         response = requests.get(url=url+appid, params=params)
         return response.json()
@@ -231,19 +231,18 @@ def get_n_reviews(appid, n):
 
     return reviews
 
-
-
 for a in file_list[2:]:
-    data = pd.read_excel("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/새 폴더/"+a)[:20]
+    data = pd.read_excel(a)[:20]
     columns=data.columns.values[0]
     number = data[columns].str.split('/').str[4] #id만 따기
     name = data[columns].str.split('/').str[5]
     for i in range(0,len(number)):
         id_ = number[i]
        
-        response2 = get_n_reviews(str(435150), 5500)
+        response2 = get_n_reviews(str(id_), 5500) #5500은 수집하고자하는 리뷰 갯수 리뷰갯수 조정가능
         df = pd.DataFrame(response2)
-        df.to_csv("C:/Users/young/OneDrive/바탕 화면/졸업논문/data/"+"adventure_and_casual"+'@'+'Divinity_Original_Sin_2__Definitive_Edition'+".csv")
+        
 
 response2 = get_n_reviews(str(1174180), 100000)
 df = pd.DataFrame(response2)
+df.to_csv("df.csv") #id별 게임 이름으로 
