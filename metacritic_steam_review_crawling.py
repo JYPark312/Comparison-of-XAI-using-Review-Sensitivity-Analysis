@@ -101,7 +101,7 @@ soup = BeautifulSoup(html, 'html.parser')
 
 
 # 스크롤 높이 가져옴
-path_dir = 'C:/Users/young/OneDrive/바탕 화면/졸업논문/data/새 폴더'
+path_dir = ''
 file_list = os.listdir(path_dir)
 
 
