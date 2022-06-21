@@ -69,7 +69,9 @@ df.to_csv("df.csv") #id별 게임 이름으로
 
 ### 단어카테고리 정의(topic modeling)
 - coherencs score에 기반한 토픽수 설정
+
 ![image](https://user-images.githubusercontent.com/70933580/174726389-fbebb9d4-71a3-4263-be07-8a28771bd4c2.png)
 
 - 토픽 수 5
+
 ![image](https://user-images.githubusercontent.com/70933580/174726508-aa38a293-f8e0-4c87-bc90-8c0bf38a2bf0.png)
