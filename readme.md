@@ -75,3 +75,34 @@ df.to_csv("df.csv") #id별 게임 이름으로
 - 토픽 수 5
 
 ![image](https://user-images.githubusercontent.com/70933580/174726508-aa38a293-f8e0-4c87-bc90-8c0bf38a2bf0.png)
+- Experience: 게임 플레이와 연관된 단어
+- Identity: 게임 디자인에 포함되지만 고유 특성으로 분류될 단어
+- Play type: 플레이하는 유형에 관한 단어
+- Design: 전반적인 게임 디자인에 관한 단어
+- Error: 오류에 관한 단어
+
+### 딥러닝을 통한 감성분석
+- 등장 빈도 10회 미만 단어 제거 (7%)
+- 길이 8 이하 샘플 제거 (20%)
+- 전체 리뷰 길이 분포
+
+![image](https://user-images.githubusercontent.com/70933580/174727000-92674512-da40-412b-b823-baca85972828.png)
+
+- 최대 길이 240
+- train: test = 7:3
+- 모델 비교
+
+![image](https://user-images.githubusercontent.com/70933580/174727109-7fc9be63-d44c-45cb-a4ec-170c153d69d7.png)
+
+- 명사만 사용한 세 모델의 성능이 비슷
+- 세 모델의 가장 기본 모델인 LSTM을 비교 분석에 사용
+
+### XAI 모델 별 해석 및 키워드 비교
+- 데이터 필터링 설정
+- 모델 별 점수 평균 계산
+- 평균 값 IQR 범위 내, 등장빈도 평균 이상 단어 선별
+- 필터링 기준
+
+![image](https://user-images.githubusercontent.com/70933580/174727310-ec0e3ed1-68b9-458a-a098-b7323b75e68c.png)
+
+#### LRP 
